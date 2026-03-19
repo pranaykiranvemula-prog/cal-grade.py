@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Result Management System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #F0F4F8;
+      color: #2D3748;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1565C0, #0D47A1);
+      color: white;
+      padding: 20px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    header h1 { font-size: 22px; font-weight: 700; }
+    header p  { font-size: 13px; opacity: 0.85; margin-top: 3px; }
+    .header-btns { display: flex; gap: 10px; }
+    .btn-add {
+      background: #43A047; color: white;
+      padding: 9px 20px; border-radius: 6px;
+      text-decoration: none; font-weight: 600; font-size: 14px;
+      transition: background 0.2s;
+    }
+    .btn-add:hover { background: #2E7D32; }
+    .btn-dl {
+      background: rgba(255,255,255,0.15); color: white;
+      padding: 9px 20px; border-radius: 6px;
+      text-decoration: none; font-weight: 600; font-size: 14px;
+      border: 1px solid rgba(255,255,255,0.4);
+      transition: background 0.2s;
+    }
+    .btn-dl:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── Summary cards ── */
+    .summary {
+      display: flex; gap: 16px;
+      padding: 24px 32px 0;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: white; border-radius: 10px;
+      padding: 16px 24px; flex: 1; min-width: 130px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    .card .num { font-size: 30px; font-weight: 700; }
+    .card .lbl { font-size: 12px; color: #718096; margin-top: 4px; }
+    .card.blue  .num { color: #1565C0; }
+    .card.green .num { color: #2E7D32; }
+    .card.red   .num { color: #C62828; }
+    .card.gold  .num { color: #E65100; }
+
+    /* ── Table section ── */
+    .table-wrap {
+      margin: 24px 32px;
+      background: white; border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .table-wrap h2 {
+      padding: 16px 20px; font-size: 15px;
+      border-bottom: 1px solid #E2E8F0; color: #2D3748;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: #EBF4FF; }
+    th {
+      padding: 12px 14px; text-align: left;
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; color: #4A5568;
+      letter-spacing: 0.05em;
+    }
+    td { padding: 12px 14px; font-size: 14px; border-top: 1px solid #F0F4F8; }
+    tr:hover { background: #FAFBFF; }
+
+    /* ── Grade badges ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 700;
+    }
+    .grade-Ap  { background:#E8F5E9; color:#2E7D32; }
+    .grade-A   { background:#E3F2FD; color:#1565C0; }
+    .grade-B   { background:#E0F2F1; color:#00695C; }
+    .grade-C   { background:#FFF3E0; color:#E65100; }
+    .grade-D   { background:#FFF8E1; color:#F57F17; }
+    .grade-FAIL{ background:#FFEBEE; color:#C62828; }
+
+    /* ── Delete button ── */
+    .btn-del {
+      background: none; border: 1px solid #FC8181;
+      color: #C62828; padding: 4px 10px;
+      border-radius: 4px; font-size: 12px;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-del:hover { background: #FFEBEE; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center; padding: 60px 20px; color: #718096;
+    }
+    .empty p { margin-top: 8px; font-size: 14px; }
+    .empty a {
+      display: inline-block; margin-top: 16px;
+      background: #1565C0; color: white;
+      padding: 10px 24px; border-radius: 6px;
+      text-decoration: none; font-weight: 600;
+    }
+
+    footer {
+      text-align: center; padding: 20px;
+      font-size: 12px; color: #A0AEC0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Student Result Management System</h1>
+    <p>Manage student marks, calculate grades, and download reports</p>
+  </div>
+  <div class="header-btns">
+    {% if results %}
+    <a href="/download" class="btn-dl">Download CSV</a>
+    {% endif %}
+    <a href="/add" class="btn-add">+ Add Student</a>
+  </div>
+</header>
+
+<!-- Summary Cards -->
+<div class="summary">
+  <div class="card blue">
+    <div class="num">{{ total_students }}</div>
+    <div class="lbl">Total Students</div>
+  </div>
+  <div class="card green">
+    <div class="num">{{ passed }}</div>
+    <div class="lbl">Passed</div>
+  </div>
+  <div class="card red">
+    <div class="num">{{ failed }}</div>
+    <div class="lbl">Failed</div>
+  </div>
+  <div class="card gold">
+    <div class="num">{{ class_avg }}%</div>
+    <div class="lbl">Class Average</div>
+  </div>
+</div>
+
+<!-- Results Table -->
+<div class="table-wrap">
+  <h2>Student Results</h2>
+
+  {% if results %}
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Maths</th>
+        <th>Science</th>
+        <th>English</th>
+        <th>Telugu</th>
+        <th>Hindi</th>
+        <th>Total</th>
+        <th>Percentage</th>
+        <th>Grade</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in results %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><strong>{{ r.name }}</strong></td>
+        <td>{{ r.maths }}</td>
+        <td>{{ r.science }}</td>
+        <td>{{ r.english }}</td>
+        <td>{{ r.telugu }}</td>
+        <td>{{ r.hindi }}</td>
+        <td><strong>{{ r.total }}/{{ r.maximum }}</strong></td>
+        <td>{{ r.percentage }}%</td>
+        <td>
+          {% set g = r.grade.replace("+","p") %}
+          <span class="badge grade-{{ r.grade.replace('+','Ap') }}">
+            {{ r.grade }}
+          </span>
+        </td>
+        <td>
+          <a href="/delete/{{ r.id }}"
+             class="btn-del"
+             onclick="return confirm('Delete {{ r.name }}?')">
+            Delete
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    <div style="font-size:48px">📋</div>
+    <p>No students added yet.</p>
+    <a href="/add">Add First Student</a>
+  </div>
+  {% endif %}
+</div>
+
+<footer>Student Result Management System &nbsp;|&nbsp; Built with Python Flask</footer>
+
+</body>
+</html>
